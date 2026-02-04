@@ -1,6 +1,6 @@
 // src/controllers/taskController.ts
 import { Response } from "express";
-import prisma from "../prisma"; // Import ตัวที่เราแก้เสร็จแล้ว
+import prisma from "../prisma";
 import { AuthRequest } from "../middlewares/authMiddleware";
 
 // 1. ดึง Task ทั้งหมดของ User นั้นๆ
@@ -10,14 +10,21 @@ export const getTasks = async (
 ): Promise<any> => {
   try {
     const userId = req.user?.userId;
+    const username = req.user?.username;
+
+    console.log(`🔍 Fetching tasks for: ${username} (ID: ${userId})`);
 
     const tasks = await prisma.task.findMany({
-      where: { userId },
-      orderBy: { position: "asc" }, // เรียงตามตำแหน่ง (สำคัญมากสำหรับ Kanban)
+      where: { userId: userId },
+      orderBy: { position: "asc" },
     });
 
-    res.json(tasks);
+    res.json({
+      owner: username,
+      data: tasks,
+    });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Error fetching tasks" });
   }
 };
@@ -50,7 +57,7 @@ export const createTask = async (
         status: status || "todo",
         priority: priority || "medium",
         position: newPosition,
-        userId,
+        userId: userId,
       },
     });
 

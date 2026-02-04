@@ -5,10 +5,10 @@ import { authenticateToken } from "../middlewares/authMiddleware";
 
 const router = Router();
 
-// ทุก Route ในนี้ต้องผ่านการตรวจ Token ก่อน
+// บังคับว่าต้องมี Token ถึงจะเข้ามาใน Route เหล่านี้ได้
 router.use(authenticateToken);
 
-router.get("/", getTasks);
-router.post("/", createTask);
+router.get("/", getTasks); // GET /tasks
+router.post("/", createTask); // POST /tasks
 
 export default router;

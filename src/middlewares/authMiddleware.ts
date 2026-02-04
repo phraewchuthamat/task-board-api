@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-// ประกาศ Type เพิ่มเติมให้ Express Request รู้จัก user
+// 1. ประกาศ Type ใหม่ ให้ Express รู้จักตัวแปร "user"
 export interface AuthRequest extends Request {
   user?: {
     userId: string;
@@ -15,27 +15,31 @@ export const authenticateToken = (
   res: Response,
   next: NextFunction,
 ): any => {
-  // 1. ดึง Token จาก Header (Format: "Bearer <token>")
+  // 2. รับ Token จาก Header (Authorization: Bearer <token>)
   const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const token = authHeader && authHeader.split(" ")[1]; // ตัดคำว่า Bearer ออก
 
   if (!token) {
     return res
       .status(401)
-      .json({ message: "Access denied. No token provided." });
+      .json({ message: "Access denied. Please login first." });
   }
 
   try {
-    // 2. แกะ Token ออกมาดูข้อมูล
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+    // 3. ไขรหัส Token ด้วย Secret Key ของเรา
+    const secret = process.env.JWT_SECRET as string;
+    const decoded = jwt.verify(token, secret) as {
       userId: string;
       username: string;
     };
 
-    // 3. แนบข้อมูล user ไปกับ request เพื่อให้ Controller เอาไปใช้ต่อได้
+    // 4. ***จุดสำคัญ***: แนบข้อมูล User ใส่ไปใน Request
+    // เพื่อให้ Controller ขั้นถัดไปรู้ว่า "ใคร" เป็นคนเรียก
     req.user = decoded;
-    next(); // ผ่านไปทำอย่างอื่นต่อได้
+
+    console.log(`✅ User verified: ${decoded.username}`); // Log ดูว่าใครเข้ามา
+    next(); // ผ่านด่านไปได้!
   } catch (error) {
-    return res.status(403).json({ message: "Invalid token." });
+    return res.status(403).json({ message: "Invalid or expired token." });
   }
 };
