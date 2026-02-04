@@ -1,5 +1,10 @@
 import { Router } from 'express'
-import { getColumns, createColumn, updateColumn, deleteColumn } from '../controllers/columnController'
+import {
+    getColumns,
+    createColumn,
+    updateColumn,
+    deleteColumn,
+} from '../controllers/columnController'
 import { authenticateToken } from '../middlewares/authMiddleware'
 
 const router = Router()
