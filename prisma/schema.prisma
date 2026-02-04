@@ -6,34 +6,51 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id        String   @id @default(uuid())
   username  String   @unique
-  password  String // เก็บแบบ Hash เท่านั้น
-  tasks     Task[] // ความสัมพันธ์ 1 User มีได้หลาย Tasks
+  password  String
+  tasks     Task[]
+  columns   Column[]
   createdAt DateTime @default(now())
+}
+
+model Column {
+  id       String @id @default(uuid())
+  title    String
+  position Float // ใช้สำหรับเรียงลำดับ Column (ซ้าย-ขวา)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  tasks Task[] // 1 Column มีหลาย Tasks
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Task {
   id          String  @id @default(uuid())
   title       String
   description String? @db.Text
-  status      String // 'todo', 'doing', 'done'
-  priority    String // 'low', 'medium', 'high'
+  priority    String
+  position    Float
 
-  // Magic Field: ใช้ Float เก็บตำแหน่ง เช่น 1000.5 ทำให้แทรกการ์ดได้โดยไม่ต้องแก้ ID อื่น
-  position Float
+  // --- เปลี่ยนจาก status String เป็นความสัมพันธ์กับ Column ---
+  columnId String
+  column   Column @relation(fields: [columnId], references: [id], onDelete: Cascade)
 
-  // Foreign Key เชื่อมกับ User
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Index ช่วยให้ query หา task ของ user คนนั้นๆ ได้เร็วขึ้น
   @@index([userId])
+  @@index([columnId]) // เพิ่ม Index เพื่อให้ดึงงานใน Column เร็วขึ้น
 }

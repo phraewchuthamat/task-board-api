@@ -4,6 +4,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes";
 import taskRoutes from "./routes/taskRoutes";
+import columnRoutes from './routes/columnRoutes'
 
 // โหลดค่าจาก .env
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(morgan("dev")); // Log request ที่ยิงเข้ามาด�
 // --- Routes ---
 app.use("/auth", authRoutes);
 app.use("/tasks", taskRoutes);
+app.use('/columns', columnRoutes)
 
 app.get("/", (req, res) => {
   res.send("Task Board API is running! 🚀");

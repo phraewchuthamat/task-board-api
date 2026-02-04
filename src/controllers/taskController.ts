@@ -35,14 +35,14 @@ export const createTask = async (
   res: Response,
 ): Promise<any> => {
   try {
-    const { title, description, status, priority } = req.body;
+    const { title, description, columnId, priority } = req.body;
     const userId = req.user?.userId;
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
     // หาตำแหน่งสุดท้าย เพื่อเอาไปต่อท้าย
     const lastTask = await prisma.task.findFirst({
-      where: { userId, status }, // หาเฉพาะใน column เดียวกัน
+      where: { userId, columnId }, // หาเฉพาะใน column เดียวกัน
       orderBy: { position: "desc" },
     });
 
@@ -54,7 +54,7 @@ export const createTask = async (
       data: {
         title,
         description,
-        status: status || "todo",
+        columnId,
         priority: priority || "medium",
         position: newPosition,
         userId: userId,
@@ -74,7 +74,7 @@ export const updateTask = async (
 ): Promise<any> => {
   try {
     const { id } = req.params as { id: string };
-    const { title, description, status, priority, position } = req.body;
+    const { title, description, columnId, priority, position } = req.body;
     const userId = req.user?.userId;
 
     // 1. เช็คก่อนว่า Task นี้เป็นของ User คนนี้จริงไหม
@@ -94,7 +94,7 @@ export const updateTask = async (
       data: {
         title,
         description,
-        status,
+        columnId,
         priority,
         position, // รับค่าตำแหน่งใหม่ (Float) สำหรับการจัดเรียง
       },
