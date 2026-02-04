@@ -67,3 +67,74 @@ export const createTask = async (
     res.status(500).json({ message: "Error creating task" });
   }
 };
+
+export const updateTask = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { id } = req.params as { id: string };
+    const { title, description, status, priority, position } = req.body;
+    const userId = req.user?.userId;
+
+    // 1. เช็คก่อนว่า Task นี้เป็นของ User คนนี้จริงไหม
+    const existingTask = await prisma.task.findFirst({
+      where: { id, userId }, // <--- ต้องตรงทั้ง ID และ Owner
+    });
+
+    if (!existingTask) {
+      return res
+        .status(404)
+        .json({ message: "Task not found or unauthorized" });
+    }
+
+    // 2. อัปเดตข้อมูล
+    const updatedTask = await prisma.task.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        status,
+        priority,
+        position, // รับค่าตำแหน่งใหม่ (Float) สำหรับการจัดเรียง
+      },
+    });
+
+    res.json(updatedTask);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating task" });
+  }
+};
+
+// 4. ลบ Task
+export const deleteTask = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { id } = req.params as { id: string };
+    const userId = req.user?.userId;
+
+    // 1. เช็คความเป็นเจ้าของก่อนลบ (Safety First!)
+    // ใช้ updateMany เพื่อเช็คและลบในการเรียกครั้งเดียวไม่ได้กับ delete
+    // แต่ใช้ deleteMany ได้ (ถ้าเจอคือลบ, ถ้าไม่เจอก็ไม่ error แต่ได้ count 0)
+    const result = await prisma.task.deleteMany({
+      where: {
+        id,
+        userId, // <--- ลบเฉพาะถ้า id และ userId ตรงกัน
+      },
+    });
+
+    if (result.count === 0) {
+      return res
+        .status(404)
+        .json({ message: "Task not found or unauthorized" });
+    }
+
+    res.json({ message: "Task deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error deleting task" });
+  }
+};
