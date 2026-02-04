@@ -1,0 +1,38 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String // เก็บแบบ Hash เท่านั้น
+  tasks     Task[] // ความสัมพันธ์ 1 User มีได้หลาย Tasks
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id          String  @id @default(uuid())
+  title       String
+  description String? @db.Text
+  status      String // 'todo', 'doing', 'done'
+  priority    String // 'low', 'medium', 'high'
+
+  // Magic Field: ใช้ Float เก็บตำแหน่ง เช่น 1000.5 ทำให้แทรกการ์ดได้โดยไม่ต้องแก้ ID อื่น
+  position Float
+
+  // Foreign Key เชื่อมกับ User
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Index ช่วยให้ query หา task ของ user คนนั้นๆ ได้เร็วขึ้น
+  @@index([userId])
+}
