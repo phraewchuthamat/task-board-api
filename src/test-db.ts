@@ -1,7 +1,5 @@
 // src/test-db.ts
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import prisma from './prisma'
 
 async function main() {
     // ลองสร้าง User จำลอง
