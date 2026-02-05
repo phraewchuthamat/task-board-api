@@ -1,15 +1,12 @@
 version: '3.8'
 
 services:
-    # ----------------------------------------------------
-    # 1. Database (ตั้งรหัสผ่านไว้ว่า rootpassword)
-    # ----------------------------------------------------
     db:
         image: mysql:8.0
         container_name: taskboard-db
         restart: always
         environment:
-            MYSQL_ROOT_PASSWORD: rootpassword # <--- รหัสผ่านถูกกำหนดที่นี่
+            MYSQL_ROOT_PASSWORD: rootpassword
             MYSQL_DATABASE: taskboard_db
         ports:
             - '3307:3306'
@@ -19,7 +16,7 @@ services:
             - app-network
 
     # ----------------------------------------------------
-    # 2. Backend API
+    # Backend API
     # ----------------------------------------------------
     api:
         build:
@@ -38,7 +35,7 @@ services:
             - app-network
 
     # ----------------------------------------------------
-    # 3. Frontend Web (ไม่เปลี่ยน)
+    # Frontend Web (ไม่เปลี่ยน)
     # ----------------------------------------------------
     web:
         build:
