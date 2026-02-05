@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const columnController_1 = require("../controllers/columnController");
+const authMiddleware_1 = require("../middlewares/authMiddleware");
+const router = (0, express_1.Router)();
+router.use(authMiddleware_1.authenticateToken);
+router.get('/', columnController_1.getColumns);
+router.post('/', columnController_1.createColumn);
+router.patch('/:id', columnController_1.updateColumn);
+router.delete('/:id', columnController_1.deleteColumn);
+exports.default = router;
