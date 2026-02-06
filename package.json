@@ -4,8 +4,17 @@
     "description": "",
     "main": "./src/app.ts",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "tsc"
+        "dev": "ts-node src/app.ts",
+        "build": "tsc",
+        "start": "node dist/app.js",
+        "prisma:generate": "prisma generate",
+        "prisma:migrate": "prisma migrate dev",
+        "prisma:deploy": "prisma migrate deploy",
+        "prisma:studio": "prisma studio",
+        "docker:up": "docker-compose up -d --build",
+        "docker:down": "docker-compose down",
+        "docker:logs": "docker-compose logs -f",
+        "test": "echo \"Error: no test specified\" && exit 1"
     },
     "keywords": [],
     "author": "",
