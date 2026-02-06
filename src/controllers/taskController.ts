@@ -1,9 +1,7 @@
-// src/controllers/taskController.ts
 import { Response } from 'express'
 import prisma from '../prisma'
 import { AuthRequest } from '../middlewares/authMiddleware'
 
-// 1. ดึง Task ทั้งหมดของ User นั้นๆ
 export const getTasks = async (
     req: AuthRequest,
     res: Response
@@ -29,7 +27,6 @@ export const getTasks = async (
     }
 }
 
-// 2. สร้าง Task ใหม่
 export const createTask = async (
     req: AuthRequest,
     res: Response
@@ -40,14 +37,11 @@ export const createTask = async (
 
         if (!userId) return res.status(401).json({ message: 'Unauthorized' })
 
-        // หาตำแหน่งสุดท้าย เพื่อเอาไปต่อท้าย
         const lastTask = await prisma.task.findFirst({
-            where: { userId, columnId }, // หาเฉพาะใน column เดียวกัน
+            where: { userId, columnId },
             orderBy: { position: 'desc' },
         })
 
-        // ถ้ามี task อยู่แล้ว ให้บวกเพิ่ม 1000, ถ้าไม่มีให้เริ่มที่ 1000
-        // (ใช้เลขเยอะๆ เพื่อให้มีช่องว่างแทรกตรงกลางได้ง่าย)
         const newPosition = lastTask ? lastTask.position + 1000 : 1000
 
         const newTask = await prisma.task.create({
@@ -77,9 +71,8 @@ export const updateTask = async (
         const { title, description, columnId, priority, position } = req.body
         const userId = req.user?.userId
 
-        // 1. เช็คก่อนว่า Task นี้เป็นของ User คนนี้จริงไหม
         const existingTask = await prisma.task.findFirst({
-            where: { id, userId }, // <--- ต้องตรงทั้ง ID และ Owner
+            where: { id, userId },
         })
 
         if (!existingTask) {
@@ -88,7 +81,6 @@ export const updateTask = async (
                 .json({ message: 'Task not found or unauthorized' })
         }
 
-        // 2. อัปเดตข้อมูล
         const updatedTask = await prisma.task.update({
             where: { id },
             data: {
@@ -96,7 +88,7 @@ export const updateTask = async (
                 description,
                 columnId,
                 priority,
-                position, // รับค่าตำแหน่งใหม่ (Float) สำหรับการจัดเรียง
+                position,
             },
         })
 
@@ -107,7 +99,6 @@ export const updateTask = async (
     }
 }
 
-// 4. ลบ Task
 export const deleteTask = async (
     req: AuthRequest,
     res: Response
@@ -116,13 +107,10 @@ export const deleteTask = async (
         const { id } = req.params as { id: string }
         const userId = req.user?.userId
 
-        // 1. เช็คความเป็นเจ้าของก่อนลบ (Safety First!)
-        // ใช้ updateMany เพื่อเช็คและลบในการเรียกครั้งเดียวไม่ได้กับ delete
-        // แต่ใช้ deleteMany ได้ (ถ้าเจอคือลบ, ถ้าไม่เจอก็ไม่ error แต่ได้ count 0)
         const result = await prisma.task.deleteMany({
             where: {
                 id,
-                userId, // <--- ลบเฉพาะถ้า id และ userId ตรงกัน
+                userId,
             },
         })
 

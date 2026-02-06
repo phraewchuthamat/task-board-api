@@ -2,7 +2,6 @@ import { Response } from 'express'
 import prisma from '../prisma'
 import { AuthRequest } from '../middlewares/authMiddleware'
 
-// 1. ดึง Column ทั้งหมดของ User
 export const getColumns = async (
     req: AuthRequest,
     res: Response
@@ -28,7 +27,6 @@ export const getColumns = async (
     }
 }
 
-// 2. สร้าง Column ใหม่
 export const createColumn = async (
     req: AuthRequest,
     res: Response
@@ -41,7 +39,6 @@ export const createColumn = async (
         if (!title)
             return res.status(400).json({ message: 'Title is required' })
 
-        // หาตำแหน่งสุดท้าย
         const lastColumn = await prisma.column.findFirst({
             where: { userId },
             orderBy: { position: 'desc' },

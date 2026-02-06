@@ -6,18 +6,15 @@ import authRoutes from './routes/authRoutes'
 import taskRoutes from './routes/taskRoutes'
 import columnRoutes from './routes/columnRoutes'
 
-// โหลดค่าจาก .env
 dotenv.config()
 
 const app = express()
 
-// --- Middlewares ---
-app.use(express.json()) // อ่าน JSON จาก Body ได้
+app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(cors()) // อนุญาตให้ Frontend ยิงเข้ามาได้
-app.use(morgan('dev')) // Log request ที่ยิงเข้ามาดูใน Terminal
+app.use(cors())
+app.use(morgan('dev'))
 
-// --- Routes ---
 app.use('/auth', authRoutes)
 app.use('/tasks', taskRoutes)
 app.use('/columns', columnRoutes)
@@ -26,7 +23,6 @@ app.get('/', (req, res) => {
     res.send('Task Board API is running! 🚀')
 })
 
-// --- Start Server ---
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
     console.log(`\n====================================`)
