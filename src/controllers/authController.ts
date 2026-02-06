@@ -58,7 +58,12 @@ export const login = async (req: Request, res: Response): Promise<any> => {
             { expiresIn: '1d' }
         )
 
-        res.json({ message: 'Login successful', token })
+        res.json({
+            message: 'Login successful',
+            accessToken: token,
+            refreshToken: token,
+            user: { id: user.id, username: user.username },
+        })
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: 'Internal server error' })
