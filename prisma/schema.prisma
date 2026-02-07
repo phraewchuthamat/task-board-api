@@ -22,6 +22,7 @@ model Column {
   id       String @id @default(uuid())
   title    String
   position Float // ใช้สำหรับเรียงลำดับ Column (ซ้าย-ขวา)
+  color    String? // เก็บสีของ Column (optional)
 
   userId String
   user   User   @relation(fields: [userId], references: [id])

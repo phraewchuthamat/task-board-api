@@ -32,7 +32,7 @@ export const createColumn = async (
     res: Response
 ): Promise<any> => {
     try {
-        const { title } = req.body
+        const { title, color } = req.body
         const userId = req.user?.userId
 
         if (!userId) return res.status(401).json({ message: 'Unauthorized' })
@@ -50,6 +50,7 @@ export const createColumn = async (
             data: {
                 title,
                 position: newPosition,
+                color: color || null,
                 userId,
             },
         })
@@ -68,7 +69,7 @@ export const updateColumn = async (
 ): Promise<any> => {
     try {
         const { id } = req.params as { id: string }
-        const { title, position } = req.body
+        const { title, position, color } = req.body
         const userId = req.user?.userId
 
         if (!userId) return res.status(401).json({ message: 'Unauthorized' })
@@ -86,8 +87,9 @@ export const updateColumn = async (
         const updatedColumn = await prisma.column.update({
             where: { id },
             data: {
-                title,
-                position,
+                ...(title !== undefined && { title }),
+                ...(position !== undefined && { position }),
+                ...(color !== undefined && { color }),
             },
         })
 
