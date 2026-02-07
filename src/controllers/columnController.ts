@@ -62,7 +62,7 @@ export const createColumn = async (
     }
 }
 
-// 3. อัปเดต Column (เช่น เปลี่ยนชื่อ หรือ ย้ายตำแหน่ง)
+
 export const updateColumn = async (
     req: AuthRequest,
     res: Response
@@ -100,7 +100,7 @@ export const updateColumn = async (
     }
 }
 
-// 4. ลบ Column
+
 export const deleteColumn = async (
     req: AuthRequest,
     res: Response
