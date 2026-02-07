@@ -61,7 +61,6 @@ export const login = async (req: Request, res: Response): Promise<any> => {
         res.json({
             message: 'Login successful',
             accessToken: token,
-            refreshToken: token,
             user: { id: user.id, username: user.username },
         })
     } catch (error) {
