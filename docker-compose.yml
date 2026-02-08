@@ -15,9 +15,6 @@ services:
         networks:
             - app-network
 
-    # ----------------------------------------------------
-    # Backend API
-    # ----------------------------------------------------
     api:
         build:
             context: .
@@ -34,9 +31,6 @@ services:
         networks:
             - app-network
 
-    # ----------------------------------------------------
-    # Frontend Web
-    # ----------------------------------------------------
     web:
         build:
             context: ../task-board-react

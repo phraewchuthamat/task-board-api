@@ -1,4 +1,3 @@
-# File: task-board-api/Dockerfile
 
 # 1. ใช้ Node Version ล่าสุด
 FROM node:latest

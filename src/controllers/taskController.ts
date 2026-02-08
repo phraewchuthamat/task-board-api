@@ -2,6 +2,14 @@ import { Response } from 'express'
 import prisma from '../prisma'
 import { AuthRequest } from '../middlewares/authMiddleware'
 
+const handleServerError = (res: Response, error: any, context: string) => {
+    console.error(`[${context}] Error:`, error)
+    return res.status(500).json({
+        message: `${context} failed.`,
+        error: error instanceof Error ? error.message : 'Unknown error',
+    })
+}
+
 export const getTasks = async (
     req: AuthRequest,
     res: Response
@@ -10,7 +18,11 @@ export const getTasks = async (
         const userId = req.user?.userId
         const username = req.user?.username
 
-        console.log(`🔍 Fetching tasks for: ${username} (ID: ${userId})`)
+        if (!userId) {
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' })
+        }
 
         const tasks = await prisma.task.findMany({
             where: { userId: userId },
@@ -22,8 +34,7 @@ export const getTasks = async (
             data: tasks,
         })
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ message: 'Error fetching tasks' })
+        handleServerError(res, error, 'Fetching tasks')
     }
 }
 
@@ -32,10 +43,47 @@ export const createTask = async (
     res: Response
 ): Promise<any> => {
     try {
-        const { title, description, columnId, priority } = req.body
         const userId = req.user?.userId
+        if (!userId) {
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' })
+        }
 
-        if (!userId) return res.status(401).json({ message: 'Unauthorized' })
+        const { title, description, columnId, priority } = req.body
+
+        if (!title || typeof title !== 'string' || title.trim().length === 0) {
+            return res.status(400).json({
+                message:
+                    'Invalid input: "title" is required and must be a non-empty string.',
+            })
+        }
+
+        if (!columnId || typeof columnId !== 'string') {
+            return res.status(400).json({
+                message:
+                    'Invalid input: "columnId" is required and must be a string.',
+            })
+        }
+
+        if (
+            description !== undefined &&
+            description !== null &&
+            typeof description !== 'string'
+        ) {
+            return res.status(400).json({
+                message: 'Invalid input: "description" must be a string.',
+            })
+        }
+        if (
+            priority !== undefined &&
+            priority !== null &&
+            typeof priority !== 'string'
+        ) {
+            return res.status(400).json({
+                message: 'Invalid input: "priority" must be a string.',
+            })
+        }
 
         const lastTask = await prisma.task.findFirst({
             where: { userId, columnId },
@@ -46,8 +94,8 @@ export const createTask = async (
 
         const newTask = await prisma.task.create({
             data: {
-                title,
-                description,
+                title: title.trim(),
+                description: description || null,
                 columnId,
                 priority: priority || 'medium',
                 position: newPosition,
@@ -57,8 +105,7 @@ export const createTask = async (
 
         res.status(201).json(newTask)
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ message: 'Error creating task' })
+        handleServerError(res, error, 'Creating task')
     }
 }
 
@@ -67,35 +114,84 @@ export const updateTask = async (
     res: Response
 ): Promise<any> => {
     try {
-        const { id } = req.params as { id: string }
-        const { title, description, columnId, priority, position } = req.body
         const userId = req.user?.userId
+        if (!userId) {
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' })
+        }
+
+        const { id } = req.params
+        if (!id || typeof id !== 'string') {
+            return res
+                .status(400)
+                .json({ message: 'Invalid request: Task ID is required.' })
+        }
+
+        const { title, description, columnId, priority, position } = req.body
+
+        if (
+            title === undefined &&
+            description === undefined &&
+            columnId === undefined &&
+            priority === undefined &&
+            position === undefined
+        ) {
+            return res.status(400).json({
+                message:
+                    'Invalid input: Please provide at least one field to update.',
+            })
+        }
+
+        if (
+            title !== undefined &&
+            (typeof title !== 'string' || title.trim() === '')
+        ) {
+            return res.status(400).json({
+                message: 'Invalid input: "title" must be a non-empty string.',
+            })
+        }
+        if (columnId !== undefined && typeof columnId !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid input: "columnId" must be a string.',
+            })
+        }
+        if (position !== undefined && typeof position !== 'number') {
+            return res.status(400).json({
+                message: 'Invalid input: "position" must be a number.',
+            })
+        }
+        if (priority !== undefined && typeof priority !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid input: "priority" must be a string.',
+            })
+        }
 
         const existingTask = await prisma.task.findFirst({
             where: { id, userId },
         })
 
         if (!existingTask) {
-            return res
-                .status(404)
-                .json({ message: 'Task not found or unauthorized' })
+            return res.status(404).json({
+                message:
+                    'Task not found or you do not have permission to update it.',
+            })
         }
 
         const updatedTask = await prisma.task.update({
             where: { id },
             data: {
-                title,
-                description,
-                columnId,
-                priority,
-                position,
+                ...(title !== undefined && { title: title.trim() }),
+                ...(description !== undefined && { description }),
+                ...(columnId !== undefined && { columnId }),
+                ...(priority !== undefined && { priority }),
+                ...(position !== undefined && { position }),
             },
         })
 
         res.json(updatedTask)
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ message: 'Error updating task' })
+        handleServerError(res, error, 'Updating task')
     }
 }
 
@@ -104,8 +200,20 @@ export const deleteTask = async (
     res: Response
 ): Promise<any> => {
     try {
-        const { id } = req.params as { id: string }
         const userId = req.user?.userId
+        if (!userId) {
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' })
+        }
+
+        const { id } = req.params
+
+        if (!id || typeof id !== 'string') {
+            return res
+                .status(400)
+                .json({ message: 'Invalid request: Task ID is required.' })
+        }
 
         const result = await prisma.task.deleteMany({
             where: {
@@ -115,14 +223,14 @@ export const deleteTask = async (
         })
 
         if (result.count === 0) {
-            return res
-                .status(404)
-                .json({ message: 'Task not found or unauthorized' })
+            return res.status(404).json({
+                message:
+                    'Task not found or you do not have permission to delete it.',
+            })
         }
 
         res.json({ message: 'Task deleted successfully' })
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ message: 'Error deleting task' })
+        handleServerError(res, error, 'Deleting task')
     }
 }
