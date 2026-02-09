@@ -5,13 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteColumn = exports.updateColumn = exports.createColumn = exports.getColumns = void 0;
 const prisma_1 = __importDefault(require("../prisma"));
-const handleServerError = (res, error, context) => {
-    console.error(`[${context}] Error:`, error);
-    return res.status(500).json({
-        message: `${context} failed.`,
-        error: error instanceof Error ? error.message : 'Unknown error',
-    });
-};
+const errorHandler_1 = require("../utils/errorHandler");
 const getColumns = async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -31,7 +25,7 @@ const getColumns = async (req, res) => {
         res.json(columns);
     }
     catch (error) {
-        handleServerError(res, error, 'Fetching columns');
+        (0, errorHandler_1.handleServerError)(res, error, 'Fetching columns');
     }
 };
 exports.getColumns = getColumns;
@@ -71,7 +65,7 @@ const createColumn = async (req, res) => {
         res.status(201).json(newColumn);
     }
     catch (error) {
-        handleServerError(res, error, 'Creating column');
+        (0, errorHandler_1.handleServerError)(res, error, 'Creating column');
     }
 };
 exports.createColumn = createColumn;
@@ -133,7 +127,7 @@ const updateColumn = async (req, res) => {
         res.json(updatedColumn);
     }
     catch (error) {
-        handleServerError(res, error, 'Updating column');
+        (0, errorHandler_1.handleServerError)(res, error, 'Updating column');
     }
 };
 exports.updateColumn = updateColumn;
@@ -161,7 +155,7 @@ const deleteColumn = async (req, res) => {
         res.json({ message: 'Column deleted successfully' });
     }
     catch (error) {
-        handleServerError(res, error, 'Deleting column');
+        (0, errorHandler_1.handleServerError)(res, error, 'Deleting column');
     }
 };
 exports.deleteColumn = deleteColumn;

@@ -6,7 +6,7 @@ services:
         container_name: taskboard-db
         restart: always
         environment:
-            MYSQL_ROOT_PASSWORD: rootpassword
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: taskboard_db
         ports:
             - '3307:3306'
@@ -23,7 +23,7 @@ services:
         ports:
             - '4000:3000'
         environment:
-            DATABASE_URL: mysql://root:rootpassword@db:3306/taskboard_db
+            DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD}@db:3306/taskboard_db
             JWT_SECRET: ${JWT_SECRET}
             PORT: 3000
         depends_on:

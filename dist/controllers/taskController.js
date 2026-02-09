@@ -5,13 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTask = exports.updateTask = exports.createTask = exports.getTasks = void 0;
 const prisma_1 = __importDefault(require("../prisma"));
-const handleServerError = (res, error, context) => {
-    console.error(`[${context}] Error:`, error);
-    return res.status(500).json({
-        message: `${context} failed.`,
-        error: error instanceof Error ? error.message : 'Unknown error',
-    });
-};
+const errorHandler_1 = require("../utils/errorHandler");
 const getTasks = async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -22,7 +16,7 @@ const getTasks = async (req, res) => {
                 .json({ message: 'Unauthorized: User ID is missing.' });
         }
         const tasks = await prisma_1.default.task.findMany({
-            where: { userId: userId },
+            where: { userId },
             orderBy: { position: 'asc' },
         });
         res.json({
@@ -31,7 +25,7 @@ const getTasks = async (req, res) => {
         });
     }
     catch (error) {
-        handleServerError(res, error, 'Fetching tasks');
+        (0, errorHandler_1.handleServerError)(res, error, 'Fetching tasks');
     }
 };
 exports.getTasks = getTasks;
@@ -86,7 +80,7 @@ const createTask = async (req, res) => {
         res.status(201).json(newTask);
     }
     catch (error) {
-        handleServerError(res, error, 'Creating task');
+        (0, errorHandler_1.handleServerError)(res, error, 'Creating task');
     }
 };
 exports.createTask = createTask;
@@ -156,7 +150,7 @@ const updateTask = async (req, res) => {
         res.json(updatedTask);
     }
     catch (error) {
-        handleServerError(res, error, 'Updating task');
+        (0, errorHandler_1.handleServerError)(res, error, 'Updating task');
     }
 };
 exports.updateTask = updateTask;
@@ -188,7 +182,7 @@ const deleteTask = async (req, res) => {
         res.json({ message: 'Task deleted successfully' });
     }
     catch (error) {
-        handleServerError(res, error, 'Deleting task');
+        (0, errorHandler_1.handleServerError)(res, error, 'Deleting task');
     }
 };
 exports.deleteTask = deleteTask;

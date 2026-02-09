@@ -1,14 +1,8 @@
 import { Response } from 'express'
 import prisma from '../prisma'
 import { AuthRequest } from '../middlewares/authMiddleware'
+import { handleServerError } from '../utils/errorHandler'
 
-const handleServerError = (res: Response, error: any, context: string) => {
-    console.error(`[${context}] Error:`, error)
-    return res.status(500).json({
-        message: `${context} failed.`,
-        error: error instanceof Error ? error.message : 'Unknown error',
-    })
-}
 
 export const getTasks = async (
     req: AuthRequest,
@@ -25,7 +19,7 @@ export const getTasks = async (
         }
 
         const tasks = await prisma.task.findMany({
-            where: { userId: userId },
+            where: { userId },
             orderBy: { position: 'asc' },
         })
 
