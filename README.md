@@ -359,36 +359,7 @@ erDiagram
     }
 ```
 
----
 
-## 🔒 ความปลอดภัย
-
-### มาตรการความปลอดภัยที่ใช้
-
-| มาตรการ | รายละเอียด | ประโยชน์ |
-|---------|-----------|----------|
-| **Password Hashing** | bcryptjs (10 rounds) | Password ไม่ถูกเก็บแบบ plaintext |
-| **JWT Authentication** | 128-character secret | Token ปลอมแปลงยาก |
-| **Environment Variables** | ไม่มี secrets ใน code | ปลอดภัยใน version control |
-| **User Authorization** | ตรวจสอบ userId ทุก request | แต่ละคนเห็นเฉพาะข้อมูลตัวเอง |
-| **CORS Configuration** | Whitelist allowed origins | ป้องกันการเข้าถึงจากแหล่งที่ไม่ได้รับอนุญาต |
-| **Input Validation** | ตรวจสอบ type และ format | ป้องกัน SQL Injection |
-
-### การจัดการ Secrets
-
-```bash
-# ❌ ไม่ควรทำ
-JWT_SECRET="weak_secret"  # ใน code
-
-# ✅ ควรทำ
-# ใช้ .env file (gitignored)
-JWT_SECRET="13969a20ce1b6a14b0ac15cb71c88def..."
-
-# สร้าง strong secret ด้วย
-node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-```
-
----
 
 ## 🛠️ คำสั่งที่ใช้บ่อย
 
@@ -442,85 +413,12 @@ npm start
 
 ---
 
-## 📊 สถิติโปรเจกต์
-
-- 📝 **Lines of Code**: ~1,500 lines (TypeScript)
-- 🗂️ **API Endpoints**: 11 endpoints
-- 🔧 **Controllers**: 3 (Auth, Column, Task)
-- 🛡️ **Middlewares**: 1 (Authentication)
-- 🗄️ **Database Models**: 3 (User, Column, Task)
-- ⚡ **Build Time**: ~30 seconds
-- 🐳 **Docker Images**: 3 (DB, API, Web)
-
----
-
-## 🎯 Roadmap
-
-### ✅ เสร็จแล้ว
-- [x] Dynamic Columns System
-- [x] JWT Authentication
-- [x] Docker Deployment
-- [x] Security Improvements
-- [x] Code Refactoring
-- [x] Comprehensive Documentation
-
-### 🚧 กำลังพัฒนา
-- [ ] Unit Tests & Integration Tests
-- [ ] API Documentation (Swagger/OpenAPI)
-- [ ] Rate Limiting
-- [ ] Advanced Input Validation
-- [ ] Logging System (Winston/Pino)
-
-### 💡 แผนอนาคต
-- [ ] Real-time Updates (WebSocket)
-- [ ] File Attachments
-- [ ] Comments System
-- [ ] Team Collaboration
-- [ ] Activity Logs
-- [ ] Email Notifications
-
----
-
-## 🤝 การมีส่วนร่วม
-
-เรายินดีรับ Contribution จากทุกคน!
-
-1. Fork โปรเจกต์
-2. สร้าง Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit การเปลี่ยนแปลง (`git commit -m 'Add some AmazingFeature'`)
-4. Push ไปยัง Branch (`git push origin feature/AmazingFeature`)
-5. เปิด Pull Request
-
----
-
-## 👨‍💻 ผู้พัฒนา
-
-**Phraew Chuthamat**
-
-- 🌐 GitHub: [@phraewchuthamat](https://github.com/phraewchuthamat)
-- 📧 Email: phraewchuthamat@example.com
-- 💼 LinkedIn: [Phraew Chuthamat](https://linkedin.com/in/phraewchuthamat)
-
----
-
 ## 📄 License
 
 This project is licensed under the ISC License.
 
----
+Created by [phraewchuthamat](https://github.com/phraewchuthamat)
 
-## 🙏 ขอบคุณ
 
-- [Prisma](https://www.prisma.io/) - สำหรับ ORM ที่ยอดเยี่ยม
-- [Express.js](https://expressjs.com/) - Framework ที่เรียบง่ายแต่ทรงพลัง
-- [Docker](https://www.docker.com/) - ทำให้ deployment ง่ายขึ้นมาก
 
----
 
-<div align="center">
-
-**⭐ ถ้าชอบโปรเจกต์นี้ อย่าลืม Star ให้ด้วยนะครับ! ⭐**
-
-Made with ❤️ by Phraew Chuthamat
-
-</div>
