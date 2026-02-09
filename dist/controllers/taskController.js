@@ -5,12 +5,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTask = exports.updateTask = exports.createTask = exports.getTasks = void 0;
 const prisma_1 = __importDefault(require("../prisma"));
-// 1. ดึง Task ทั้งหมดของ User นั้นๆ
+const handleServerError = (res, error, context) => {
+    console.error(`[${context}] Error:`, error);
+    return res.status(500).json({
+        message: `${context} failed.`,
+        error: error instanceof Error ? error.message : 'Unknown error',
+    });
+};
 const getTasks = async (req, res) => {
     try {
         const userId = req.user?.userId;
         const username = req.user?.username;
-        console.log(`🔍 Fetching tasks for: ${username} (ID: ${userId})`);
+        if (!userId) {
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' });
+        }
         const tasks = await prisma_1.default.task.findMany({
             where: { userId: userId },
             orderBy: { position: 'asc' },
@@ -21,30 +31,52 @@ const getTasks = async (req, res) => {
         });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching tasks' });
+        handleServerError(res, error, 'Fetching tasks');
     }
 };
 exports.getTasks = getTasks;
-// 2. สร้าง Task ใหม่
 const createTask = async (req, res) => {
     try {
-        const { title, description, columnId, priority } = req.body;
         const userId = req.user?.userId;
-        if (!userId)
-            return res.status(401).json({ message: 'Unauthorized' });
-        // หาตำแหน่งสุดท้าย เพื่อเอาไปต่อท้าย
+        if (!userId) {
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' });
+        }
+        const { title, description, columnId, priority } = req.body;
+        if (!title || typeof title !== 'string' || title.trim().length === 0) {
+            return res.status(400).json({
+                message: 'Invalid input: "title" is required and must be a non-empty string.',
+            });
+        }
+        if (!columnId || typeof columnId !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid input: "columnId" is required and must be a string.',
+            });
+        }
+        if (description !== undefined &&
+            description !== null &&
+            typeof description !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid input: "description" must be a string.',
+            });
+        }
+        if (priority !== undefined &&
+            priority !== null &&
+            typeof priority !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid input: "priority" must be a string.',
+            });
+        }
         const lastTask = await prisma_1.default.task.findFirst({
-            where: { userId, columnId }, // หาเฉพาะใน column เดียวกัน
+            where: { userId, columnId },
             orderBy: { position: 'desc' },
         });
-        // ถ้ามี task อยู่แล้ว ให้บวกเพิ่ม 1000, ถ้าไม่มีให้เริ่มที่ 1000
-        // (ใช้เลขเยอะๆ เพื่อให้มีช่องว่างแทรกตรงกลางได้ง่าย)
         const newPosition = lastTask ? lastTask.position + 1000 : 1000;
         const newTask = await prisma_1.default.task.create({
             data: {
-                title,
-                description,
+                title: title.trim(),
+                description: description || null,
                 columnId,
                 priority: priority || 'medium',
                 position: newPosition,
@@ -54,68 +86,109 @@ const createTask = async (req, res) => {
         res.status(201).json(newTask);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error creating task' });
+        handleServerError(res, error, 'Creating task');
     }
 };
 exports.createTask = createTask;
 const updateTask = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { title, description, columnId, priority, position } = req.body;
         const userId = req.user?.userId;
-        // 1. เช็คก่อนว่า Task นี้เป็นของ User คนนี้จริงไหม
+        if (!userId) {
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' });
+        }
+        const { id } = req.params;
+        if (!id || typeof id !== 'string') {
+            return res
+                .status(400)
+                .json({ message: 'Invalid request: Task ID is required.' });
+        }
+        const { title, description, columnId, priority, position } = req.body;
+        if (title === undefined &&
+            description === undefined &&
+            columnId === undefined &&
+            priority === undefined &&
+            position === undefined) {
+            return res.status(400).json({
+                message: 'Invalid input: Please provide at least one field to update.',
+            });
+        }
+        if (title !== undefined &&
+            (typeof title !== 'string' || title.trim() === '')) {
+            return res.status(400).json({
+                message: 'Invalid input: "title" must be a non-empty string.',
+            });
+        }
+        if (columnId !== undefined && typeof columnId !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid input: "columnId" must be a string.',
+            });
+        }
+        if (position !== undefined && typeof position !== 'number') {
+            return res.status(400).json({
+                message: 'Invalid input: "position" must be a number.',
+            });
+        }
+        if (priority !== undefined && typeof priority !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid input: "priority" must be a string.',
+            });
+        }
         const existingTask = await prisma_1.default.task.findFirst({
-            where: { id, userId }, // <--- ต้องตรงทั้ง ID และ Owner
+            where: { id, userId },
         });
         if (!existingTask) {
-            return res
-                .status(404)
-                .json({ message: 'Task not found or unauthorized' });
+            return res.status(404).json({
+                message: 'Task not found or you do not have permission to update it.',
+            });
         }
-        // 2. อัปเดตข้อมูล
         const updatedTask = await prisma_1.default.task.update({
             where: { id },
             data: {
-                title,
-                description,
-                columnId,
-                priority,
-                position, // รับค่าตำแหน่งใหม่ (Float) สำหรับการจัดเรียง
+                ...(title !== undefined && { title: title.trim() }),
+                ...(description !== undefined && { description }),
+                ...(columnId !== undefined && { columnId }),
+                ...(priority !== undefined && { priority }),
+                ...(position !== undefined && { position }),
             },
         });
         res.json(updatedTask);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating task' });
+        handleServerError(res, error, 'Updating task');
     }
 };
 exports.updateTask = updateTask;
-// 4. ลบ Task
 const deleteTask = async (req, res) => {
     try {
-        const { id } = req.params;
         const userId = req.user?.userId;
-        // 1. เช็คความเป็นเจ้าของก่อนลบ (Safety First!)
-        // ใช้ updateMany เพื่อเช็คและลบในการเรียกครั้งเดียวไม่ได้กับ delete
-        // แต่ใช้ deleteMany ได้ (ถ้าเจอคือลบ, ถ้าไม่เจอก็ไม่ error แต่ได้ count 0)
+        if (!userId) {
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' });
+        }
+        const { id } = req.params;
+        if (!id || typeof id !== 'string') {
+            return res
+                .status(400)
+                .json({ message: 'Invalid request: Task ID is required.' });
+        }
         const result = await prisma_1.default.task.deleteMany({
             where: {
                 id,
-                userId, // <--- ลบเฉพาะถ้า id และ userId ตรงกัน
+                userId,
             },
         });
         if (result.count === 0) {
-            return res
-                .status(404)
-                .json({ message: 'Task not found or unauthorized' });
+            return res.status(404).json({
+                message: 'Task not found or you do not have permission to delete it.',
+            });
         }
         res.json({ message: 'Task deleted successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting task' });
+        handleServerError(res, error, 'Deleting task');
     }
 };
 exports.deleteTask = deleteTask;

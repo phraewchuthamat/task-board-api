@@ -5,12 +5,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteColumn = exports.updateColumn = exports.createColumn = exports.getColumns = void 0;
 const prisma_1 = __importDefault(require("../prisma"));
-// 1. ดึง Column ทั้งหมดของ User
+const handleServerError = (res, error, context) => {
+    console.error(`[${context}] Error:`, error);
+    return res.status(500).json({
+        message: `${context} failed.`,
+        error: error instanceof Error ? error.message : 'Unknown error',
+    });
+};
 const getColumns = async (req, res) => {
     try {
         const userId = req.user?.userId;
         if (!userId)
-            return res.status(401).json({ message: 'Unauthorized' });
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' });
         const columns = await prisma_1.default.column.findMany({
             where: { userId },
             orderBy: { position: 'asc' },
@@ -23,21 +31,30 @@ const getColumns = async (req, res) => {
         res.json(columns);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error fetching columns' });
+        handleServerError(res, error, 'Fetching columns');
     }
 };
 exports.getColumns = getColumns;
-// 2. สร้าง Column ใหม่
 const createColumn = async (req, res) => {
     try {
-        const { title } = req.body;
         const userId = req.user?.userId;
         if (!userId)
-            return res.status(401).json({ message: 'Unauthorized' });
-        if (!title)
-            return res.status(400).json({ message: 'Title is required' });
-        // หาตำแหน่งสุดท้าย
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' });
+        const { title, color } = req.body;
+        if (!title || typeof title !== 'string' || title.trim().length === 0) {
+            return res.status(400).json({
+                message: 'Invalid input: "title" is required and must be a non-empty string.',
+            });
+        }
+        if (color !== undefined &&
+            color !== null &&
+            typeof color !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid input: "color" must be a string.',
+            });
+        }
         const lastColumn = await prisma_1.default.column.findFirst({
             where: { userId },
             orderBy: { position: 'desc' },
@@ -45,70 +62,106 @@ const createColumn = async (req, res) => {
         const newPosition = lastColumn ? lastColumn.position + 1000 : 1000;
         const newColumn = await prisma_1.default.column.create({
             data: {
-                title,
+                title: title.trim(),
                 position: newPosition,
+                color: color || null,
                 userId,
             },
         });
         res.status(201).json(newColumn);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error creating column' });
+        handleServerError(res, error, 'Creating column');
     }
 };
 exports.createColumn = createColumn;
-// 3. อัปเดต Column (เช่น เปลี่ยนชื่อ หรือ ย้ายตำแหน่ง)
 const updateColumn = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { title, position } = req.body;
         const userId = req.user?.userId;
         if (!userId)
-            return res.status(401).json({ message: 'Unauthorized' });
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' });
+        const { id } = req.params;
+        if (!id || typeof id !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid request: Column ID is required and must be a string.',
+            });
+        }
+        const { title, position, color } = req.body;
+        if (title === undefined &&
+            position === undefined &&
+            color === undefined) {
+            return res.status(400).json({
+                message: 'Invalid input: Please provide at least one field to update.',
+            });
+        }
+        if (title !== undefined &&
+            (typeof title !== 'string' || title.trim() === '')) {
+            return res.status(400).json({
+                message: 'Invalid input: "title" must be a non-empty string.',
+            });
+        }
+        if (position !== undefined && typeof position !== 'number') {
+            return res.status(400).json({
+                message: 'Invalid input: "position" must be a number.',
+            });
+        }
+        if (color !== undefined &&
+            color !== null &&
+            typeof color !== 'string') {
+            return res
+                .status(400)
+                .json({ message: 'Invalid input: "color" must be a string.' });
+        }
         const existingColumn = await prisma_1.default.column.findFirst({
             where: { id, userId },
         });
         if (!existingColumn) {
-            return res
-                .status(404)
-                .json({ message: 'Column not found or unauthorized' });
+            return res.status(404).json({
+                message: 'Column not found or you do not have permission to update it.',
+            });
         }
         const updatedColumn = await prisma_1.default.column.update({
             where: { id },
             data: {
-                title,
-                position,
+                ...(title !== undefined && { title: title.trim() }),
+                ...(position !== undefined && { position }),
+                ...(color !== undefined && { color }),
             },
         });
         res.json(updatedColumn);
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error updating column' });
+        handleServerError(res, error, 'Updating column');
     }
 };
 exports.updateColumn = updateColumn;
-// 4. ลบ Column
 const deleteColumn = async (req, res) => {
     try {
-        const { id } = req.params;
         const userId = req.user?.userId;
         if (!userId)
-            return res.status(401).json({ message: 'Unauthorized' });
+            return res
+                .status(401)
+                .json({ message: 'Unauthorized: User ID is missing.' });
+        const { id } = req.params;
+        if (!id || typeof id !== 'string') {
+            return res.status(400).json({
+                message: 'Invalid request: Column ID is required and must be a string.',
+            });
+        }
         const result = await prisma_1.default.column.deleteMany({
             where: { id, userId },
         });
         if (result.count === 0) {
-            return res
-                .status(404)
-                .json({ message: 'Column not found or unauthorized' });
+            return res.status(404).json({
+                message: 'Column not found or you do not have permission to delete it.',
+            });
         }
         res.json({ message: 'Column deleted successfully' });
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error deleting column' });
+        handleServerError(res, error, 'Deleting column');
     }
 };
 exports.deleteColumn = deleteColumn;

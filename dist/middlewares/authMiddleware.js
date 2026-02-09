@@ -6,23 +6,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticateToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const authenticateToken = (req, res, next) => {
-    // 2. รับ Token จาก Header (Authorization: Bearer <token>)
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // ตัดคำว่า Bearer ออก
+    const token = authHeader && authHeader.split(' ')[1];
     if (!token) {
         return res
             .status(401)
             .json({ message: 'Access denied. Please login first.' });
     }
     try {
-        // 3. ไขรหัส Token ด้วย Secret Key ของเรา
         const secret = process.env.JWT_SECRET;
         const decoded = jsonwebtoken_1.default.verify(token, secret);
-        // 4. ***จุดสำคัญ***: แนบข้อมูล User ใส่ไปใน Request
-        // เพื่อให้ Controller ขั้นถัดไปรู้ว่า "ใคร" เป็นคนเรียก
         req.user = decoded;
-        console.log(`✅ User verified: ${decoded.username}`); // Log ดูว่าใครเข้ามา
-        next(); // ผ่านด่านไปได้!
+        console.log(`✅ User verified: ${decoded.username}`);
+        next();
     }
     catch (error) {
         return res.status(403).json({ message: 'Invalid or expired token.' });
