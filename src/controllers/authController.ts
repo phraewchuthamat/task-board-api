@@ -106,10 +106,8 @@ export const resetPassword = async (
     res: Response
 ): Promise<any> => {
     try {
-        // รับค่าทั้งหมดที่จำเป็น
         const { token, newPassword, confirmPassword } = req.body
 
-        // 1. Validation พื้นฐาน
         if (!token || !newPassword || !confirmPassword) {
             return res.status(400).json({
                 message:
@@ -117,12 +115,10 @@ export const resetPassword = async (
             })
         }
 
-        // 2. เช็คว่ารหัสผ่านใหม่ตรงกันไหม
         if (newPassword !== confirmPassword) {
             return res.status(400).json({ message: 'Passwords do not match' })
         }
 
-        // 3. ตรวจสอบ Token (ถูกต้องไหม? หมดอายุยัง?)
         let decoded: any
         try {
             decoded = jwt.verify(token, process.env.JWT_SECRET as string)
@@ -130,15 +126,12 @@ export const resetPassword = async (
             return res.status(401).json({ message: 'Invalid or expired token' })
         }
 
-        // เช็คว่าเป็น Token แบบ 'reset' จริงไหม (กันคนเอา Access Token มามั่ว)
         if (decoded.type !== 'reset') {
             return res.status(401).json({ message: 'Invalid token type' })
         }
 
-        // 4. Hash รหัสผ่านใหม่
         const hashedPassword = await bcrypt.hash(newPassword, 10)
 
-        // 5. อัปเดตลง Database
         await prisma.user.update({
             where: { id: decoded.userId },
             data: {
