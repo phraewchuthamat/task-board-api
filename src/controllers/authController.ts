@@ -9,6 +9,8 @@ interface AuthRequest extends Request {
     }
 }
 
+export const secret = process.env.JWT_SECRET || 'ubonmicrotech_private_key_2026'
+
 export const register = async (req: Request, res: Response): Promise<any> => {
     try {
         const { username, password } = req.body
@@ -62,12 +64,9 @@ export const login = async (req: Request, res: Response): Promise<any> => {
             return res.status(401).json({ message: 'Invalid credentials' })
         }
 
-        console.log(process.env.JWT_SECRET)
-        console.log(password, user.password)
-
         const token = jwt.sign(
             { userId: user.id, username: user.username },
-            process.env.JWT_SECRET as string,
+            secret,
             { expiresIn: '1d' }
         )
 
@@ -99,7 +98,7 @@ export const forgotPassword = async (
 
         const resetToken = jwt.sign(
             { userId: user.id, type: 'reset' },
-            process.env.JWT_SECRET as string,
+            secret as string,
             { expiresIn: '15m' }
         )
 
@@ -137,7 +136,7 @@ export const resetPassword = async (
 
         let decoded: any
         try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET as string)
+            decoded = jwt.verify(token, secret)
         } catch (err) {
             return res.status(401).json({ message: 'Invalid or expired token' })
         }
