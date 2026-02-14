@@ -6,7 +6,8 @@
 [![Node.js](https://img.shields.io/badge/Node.js-Latest-green)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5.x-lightgrey)](https://expressjs.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-6.19-blueviolet)](https://www.prisma.io/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)](https://www.postgresql.org/)
+[![Render](https://img.shields.io/badge/Render-Deployment-black)](https://render.com/)
 
 ---
 
@@ -26,7 +27,7 @@
 
 3. **ยากต่อการ Deploy** 🚀
    - ต้องติดตั้งหลายอย่าง ซับซ้อน
-   - ไม่มีระบบ Containerization ที่พร้อมใช้งาน
+   - การจัดการ Database ใน Production ทำได้ยาก
 
 4. **ไม่เหมาะกับการพัฒนาต่อยอด** 🛠️
    - โค้ดไม่เป็นระเบียบ มี Code Duplication
@@ -66,10 +67,10 @@ PATCH /columns/:id
 เราใส่ใจเรื่องความปลอดภัยตั้งแต่เริ่มต้น:
 
 - ✅ **Password Hashing** ด้วย bcryptjs (10 rounds)
-- ✅ **JWT Authentication** ที่แข็งแกร่ง (128-character secret)
+- ✅ **JWT Authentication** ที่แข็งแกร่ง
 - ✅ **User Authorization** - แต่ละคนเห็นเฉพาะข้อมูลของตัวเอง
 - ✅ **Environment Variables** - ไม่มี Secrets hardcoded ในโค้ด
-- ✅ **CORS Configuration** - ควบคุมการเข้าถึงจาก Frontend
+- ✅ **CORS Configuration** - ควบคุมการเข้าถึงจาก Frontend (รองรับ Vercel)
 
 ```typescript
 // ทุก Request ต้องผ่านการยืนยันตัวตน
@@ -81,27 +82,22 @@ if (task.userId !== req.user.userId) {
 }
 ```
 
-#### 3. **พร้อม Deploy ทันที** (Docker-Ready)
+#### 3. **พร้อม Deploy ทันที** (Render-Ready)
 
-ใช้ Docker Compose เพียงคำสั่งเดียว ระบบทั้งหมดพร้อมใช้งาน:
+เราเตรียม Infrastructure as Code (`render.yaml`) ไว้ให้แล้ว เพียงเชื่อมต่อกับ Render ก็พร้อมใช้งานทันที:
 
-```bash
-docker-compose up -d --build
-```
+- 🚀 **Auto Deploy**: เมื่อ Push code ขึ้น Git
+- 🗄️ **Managed Database**: สร้าง PostgreSQL ให้อัตโนมัติ
+- � **Auto Secrets**: สร้าง JWT Secret ให้เอง
 
-ระบบจะติดตั้งและรันให้อัตโนมัติ:
-- 🗄️ MySQL Database (พร้อม Volume สำหรับเก็บข้อมูล)
-- 🔧 Backend API (TypeScript + Express)
-- 🌐 Frontend Web (React Application)
-
-**ผลลัพธ์:** จาก "ติดตั้งยาก" เป็น "รันได้ใน 30 วินาที"
+**ผลลัพธ์:** จาก "ติดตั้งยาก" เป็น "คลิกเดียว Deploy"
 
 #### 4. **โค้ดคุณภาพสูง** (Clean Architecture)
 
 เราปรับปรุงโค้ดให้:
 - 📦 **Modular Design** - แยก Controllers, Routes, Middlewares, Utilities
 - ♻️ **No Code Duplication** - ใช้ Shared Error Handler
-- 🎯 **Type Safety** - TypeScript ทั้งโปรเจกต์
+- 🎯 **Type Safety** - TypeScript ทั้งโปรเจกต์ (Strict Mode + NodeNext Modules)
 - 📝 **Clear Naming** - ตัวแปรและฟังก์ชันมีชื่อที่สื่อความหมาย
 
 ```
@@ -128,9 +124,9 @@ src/
 | **TypeScript** | Type Safety, Better Developer Experience | ลดบั๊ก, เขียนโค้ดได้เร็วขึ้น |
 | **Express.js** | Lightweight, Flexible, มี Community ใหญ่ | พัฒนาได้รวดเร็ว, มี Library เยอะ |
 | **Prisma ORM** | Type-Safe Database Access, Auto Migration | ไม่ต้องเขียน SQL เอง, ปลอดภัย |
-| **MySQL 8.0** | Reliable, Scalable, มี JSON Support | เหมาะกับ Production |
+| **PostgreSQL** | Reliable, Advanced Features | มาตรฐานอุตสาหกรรม, Render รองรับฟรี |
 | **JWT** | Stateless Authentication | Scale ได้ง่าย, ไม่ต้องเก็บ Session |
-| **Docker** | Consistent Environment | รันได้เหมือนกันทุกเครื่อง |
+| **Render** | Cloud Platform (PaaS) | Deploy ง่าย, มี Free Tier |
 
 ---
 
@@ -143,6 +139,7 @@ src/
 ✅ **ระบบ Authentication ที่สมบูรณ์**
 - สมัครสมาชิก (Register)
 - เข้าสู่ระบบ (Login)
+- ลืมรหัสผ่าน / รีเซ็ตรหัสผ่าน (Forgot/Reset Password)
 - ยืนยันตัวตนด้วย JWT Token
 
 ✅ **จัดการ Columns แบบ Dynamic**
@@ -159,8 +156,7 @@ src/
 ✅ **ความปลอดภัยระดับสูง**
 - แต่ละผู้ใช้เห็นเฉพาะข้อมูลของตัวเอง
 - Password ถูก Hash อย่างปลอดภัย
-- JWT Secret แข็งแกร่ง (128 characters)
-- ไม่มี Credentials hardcoded
+- CORS ที่ปรับแต่งได้
 
 #### 🚀 API Endpoints ที่พร้อมใช้งาน
 
@@ -168,51 +164,36 @@ src/
 # Authentication
 POST   /auth/register          # สมัครสมาชิก
 POST   /auth/login             # เข้าสู่ระบบ
+POST   /auth/forgot-password   # ขอ Token รีเซรทรหัสผ่าน
+POST   /auth/reset-password    # ตั้งรหัสผ่านใหม่
+GET    /auth/profile           # ดูข้อมูลส่วนตัว
+PUT    /auth/profile           # อัปเดตข้อมูลส่วนตัว
 
 # Columns (ต้องมี Token)
-GET    /columns                # ดึงข้อมูล Columns ทั้งหมด (พร้อม Tasks)
+GET    /columns                # ดึงข้อมูล Columns (พร้อม Tasks)
 POST   /columns                # สร้าง Column ใหม่
 PATCH  /columns/:id            # แก้ไข Column
 DELETE /columns/:id            # ลบ Column
 
 # Tasks (ต้องมี Token)
-GET    /tasks                  # ดึงข้อมูล Tasks ทั้งหมด
+GET    /tasks                  # ดึงข้อมูล Tasks
 POST   /tasks                  # สร้าง Task ใหม่
-PATCH  /tasks/:id              # แก้ไข Task (รวมย้าย Column)
+PATCH  /tasks/:id              # แก้ไข Task (ย้าย Column ได้)
 DELETE /tasks/:id              # ลบ Task
 ```
-
-#### 📈 ประสิทธิภาพและความน่าเชื่อถือ
-
-- ⚡ **Build Time**: ~30 วินาที
-- 🔄 **Auto Restart**: Docker รองรับ restart policy
-- 💾 **Data Persistence**: ข้อมูลเก็บใน Docker Volume
-- 🔍 **Database Indexing**: Optimized queries ด้วย Prisma
 
 ---
 
 ## 🚀 เริ่มต้นใช้งาน
 
-### วิธีที่ 1: Docker Compose (แนะนำ - ง่ายที่สุด)
+### วิธีที่ 1: Deploy บน Render.com (แนะนำ)
 
-```bash
-# 1. Clone โปรเจกต์
-git clone https://github.com/phraewchuthamat/task-board-api.git
-cd task-board-api
-
-# 2. สร้างไฟล์ .env (Copy จาก .env.example)
-cp .env.example .env
-
-# 3. รันทั้งระบบ (Database + API + Frontend)
-docker-compose up -d --build
-
-# 4. เข้าใช้งาน
-# - Frontend: http://localhost:8080
-# - API: http://localhost:4000
-# - Database: localhost:3307
-```
-
-**เท่านี้ก็เสร็จแล้ว!** ⚡
+1.  **Fork/Clone** โปรเจกต์นี้ไปที่ GitHub/GitLab ของคุณ
+2.  สมัครสมาชิก [Render.com](https://render.com)
+3.  กด **New +** -> **Blueprint**
+4.  เชื่อมต่อกับ Repository ของคุณ
+5.  Render จะอ่านไฟล์ `render.yaml` และตั้งค่าทุกอย่างให้อัตโนมัติ (Web Service + PostgreSQL)
+6.  **เสร็จสิ้น!** 🎉
 
 ### วิธีที่ 2: Local Development
 
@@ -220,49 +201,42 @@ docker-compose up -d --build
 # 1. ติดตั้ง Dependencies
 npm install
 
-# 2. ตั้งค่า Database (ใช้ Docker หรือติดตั้งเอง)
-docker run --name mysql-taskboard \
-  -e MYSQL_ROOT_PASSWORD=rootpassword \
-  -e MYSQL_DATABASE=taskboard_db \
-  -p 3306:3306 -d mysql:8.0
+# 2. ตั้งค่า Database (PostgreSQL)
+# ต้องมี PostgreSQL รันอยู่ (ติดตั้งเอง หรือใช้ Docker)
+# docker run --name postgres-taskboard -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres:15
 
-# 3. สร้างไฟล์ .env
-DATABASE_URL="mysql://root:rootpassword@localhost:3306/taskboard_db"
-JWT_SECRET="your-strong-secret-here"
-PORT=4000
+# 3. สร้างไฟล์ .env (Copy จาก .env.example)
+cp .env.example .env
+# แก้ไข DATABASE_URL ให้ตรงกับเครื่องของคุณ
 
-# 4. รัน Prisma Migration
-npx prisma generate
-npx prisma migrate dev
+# 4. Sync Database Schema
+npx prisma db push
 
 # 5. รัน Development Server
 npm run dev
+# Server จะรันที่ http://localhost:4000
 ```
 
 ---
 
 ## 📖 ตัวอย่างการใช้งาน
 
-### 1. สมัครสมาชิกและเข้าสู่ระบบ
+### 1. ลืมรหัสผ่าน (New Feature)
 
 ```bash
-# สมัครสมาชิก
-curl -X POST http://localhost:4000/auth/register \
+# ขอ Token รีเซ็ต
+curl -X POST http://localhost:4000/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{ "username": "john" }'
+
+# ตั้งรหัสใหม่
+curl -X POST http://localhost:4000/auth/reset-password \
   -H "Content-Type: application/json" \
   -d '{
-    "username": "john",
-    "password": "securepassword123"
+    "token": "YOUR_RESET_TOKEN",
+    "newPassword": "newsecurepassword",
+    "confirmPassword": "newsecurepassword"
   }'
-
-# เข้าสู่ระบบ
-curl -X POST http://localhost:4000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "john",
-    "password": "securepassword123"
-  }'
-
-# Response: { "accessToken": "eyJhbG..." }
 ```
 
 ### 2. สร้าง Workflow ของคุณเอง
@@ -275,47 +249,6 @@ curl -X POST http://localhost:4000/columns \
   -d '{
     "title": "📝 To Do",
     "color": "#FF6B6B"
-  }'
-
-# สร้าง Column ที่สอง
-curl -X POST http://localhost:4000/columns \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "🔨 In Progress",
-    "color": "#4ECDC4"
-  }'
-
-# สร้าง Column ที่สาม
-curl -X POST http://localhost:4000/columns \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "✅ Done",
-    "color": "#95E1D3"
-  }'
-```
-
-### 3. สร้างและจัดการ Tasks
-
-```bash
-# สร้าง Task
-curl -X POST http://localhost:4000/tasks \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "เขียน README",
-    "description": "เขียน Documentation ให้สวยงาม",
-    "columnId": "COLUMN_ID",
-    "priority": "high"
-  }'
-
-# ย้าย Task ไป Column อื่น
-curl -X PATCH http://localhost:4000/tasks/TASK_ID \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "columnId": "NEW_COLUMN_ID"
   }'
 ```
 
@@ -357,51 +290,30 @@ erDiagram
         datetime createdAt
         datetime updatedAt
     }
+    
 ```
 
-
+---
 
 ## 🛠️ คำสั่งที่ใช้บ่อย
-
-### Docker Commands
-
-```bash
-# รันทั้งระบบ
-npm run docker:up
-
-# ดู logs
-npm run docker:logs
-
-# หยุดระบบ
-npm run docker:down
-
-# Restart API
-docker-compose restart api
-
-# เข้าไปใน Container
-docker exec -it taskboard-api sh
-```
 
 ### Prisma Commands
 
 ```bash
-# Generate Prisma Client
+# Deploy Schema changes to DB (สำหรับการพัฒนา)
+npx prisma db push
+
+# Generate Prisma Client (เมื่อเปลี่ยน Schema)
 npm run prisma:generate
 
-# สร้าง Migration
-npm run prisma:migrate
-
-# เปิด Prisma Studio (GUI)
+# เปิด Prisma Studio (GUI จัดการข้อมูล)
 npm run prisma:studio
-
-# Reset Database
-npx prisma migrate reset
 ```
 
 ### Development Commands
 
 ```bash
-# รัน Development Server
+# รัน Development Server (Native ESM Support)
 npm run dev
 
 # Build Production
