@@ -39,9 +39,12 @@ export const register = async (req: Request, res: Response): Promise<any> => {
             message: 'User created successfully',
             user: { id: newUser.id, username: newUser.username },
         })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating user:', error)
-        res.status(500).json({ message: 'Internal server error' })
+        res.status(500).json({
+            message: 'Internal server error',
+            error: error.message
+        })
     }
 }
 
@@ -59,6 +62,9 @@ export const login = async (req: Request, res: Response): Promise<any> => {
             return res.status(401).json({ message: 'Invalid credentials' })
         }
 
+        console.log(process.env.JWT_SECRET)
+        console.log(password, user.password)
+
         const token = jwt.sign(
             { userId: user.id, username: user.username },
             process.env.JWT_SECRET as string,
@@ -70,9 +76,12 @@ export const login = async (req: Request, res: Response): Promise<any> => {
             accessToken: token,
             user: { id: user.id, username: user.username },
         })
-    } catch (error) {
+    } catch (error: any) {
         console.error(error)
-        res.status(500).json({ message: 'Internal server error' })
+        res.status(500).json({
+            message: 'Internal server error',
+            error: error.message
+        })
     }
 }
 
@@ -99,9 +108,12 @@ export const forgotPassword = async (
             token: resetToken,
             expiresIn: '15m',
         })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Forgot Password Error:', error)
-        res.status(500).json({ message: 'Internal server error' })
+        res.status(500).json({
+            message: 'Internal server error',
+            error: error.message
+        })
     }
 }
 
@@ -144,9 +156,12 @@ export const resetPassword = async (
         })
 
         res.json({ message: 'Password has been reset successfully' })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Reset Password Error:', error)
-        res.status(500).json({ message: 'Internal server error' })
+        res.status(500).json({
+            message: 'Internal server error',
+            error: error.message
+        })
     }
 }
 
