@@ -1,7 +1,7 @@
 import { Response } from 'express'
-import prisma from '../prisma'
-import { AuthRequest } from '../middlewares/authMiddleware'
-import { handleServerError } from '../utils/errorHandler'
+import prisma from '../prisma.js'
+import { AuthRequest } from '../middlewares/authMiddleware.js'
+import { handleServerError } from '../utils/errorHandler.js'
 
 
 export const getColumns = async (

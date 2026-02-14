@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: task-board-api
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: task-board-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+    nodes:
+      - name: task-board-db
+        type: postgres
+        ipAllowList: [] # Allow all
+        plan: free # Optional: defaults to free or starter depending on account
+
+databases:
+  - name: task-board-db
+    databaseName: taskboard
+    user: taskboard_user
+    plan: free # Render Free Tier for Postgres

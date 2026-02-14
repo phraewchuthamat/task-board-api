@@ -4,8 +4,8 @@ import {
     createColumn,
     updateColumn,
     deleteColumn,
-} from '../controllers/columnController'
-import { authenticateToken } from '../middlewares/authMiddleware'
+} from '../controllers/columnController.js'
+import { authenticateToken } from '../middlewares/authMiddleware.js'
 
 const router = Router()
 

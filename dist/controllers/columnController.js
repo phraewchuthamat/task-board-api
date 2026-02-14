@@ -1,19 +1,13 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteColumn = exports.updateColumn = exports.createColumn = exports.getColumns = void 0;
-const prisma_1 = __importDefault(require("../prisma"));
-const errorHandler_1 = require("../utils/errorHandler");
-const getColumns = async (req, res) => {
+import prisma from '../prisma.js';
+import { handleServerError } from '../utils/errorHandler.js';
+export const getColumns = async (req, res) => {
     try {
         const userId = req.user?.userId;
         if (!userId)
             return res
                 .status(401)
                 .json({ message: 'Unauthorized: User ID is missing.' });
-        const columns = await prisma_1.default.column.findMany({
+        const columns = await prisma.column.findMany({
             where: { userId },
             orderBy: { position: 'asc' },
             include: {
@@ -25,11 +19,10 @@ const getColumns = async (req, res) => {
         res.json(columns);
     }
     catch (error) {
-        (0, errorHandler_1.handleServerError)(res, error, 'Fetching columns');
+        handleServerError(res, error, 'Fetching columns');
     }
 };
-exports.getColumns = getColumns;
-const createColumn = async (req, res) => {
+export const createColumn = async (req, res) => {
     try {
         const userId = req.user?.userId;
         if (!userId)
@@ -49,12 +42,12 @@ const createColumn = async (req, res) => {
                 message: 'Invalid input: "color" must be a string.',
             });
         }
-        const lastColumn = await prisma_1.default.column.findFirst({
+        const lastColumn = await prisma.column.findFirst({
             where: { userId },
             orderBy: { position: 'desc' },
         });
         const newPosition = lastColumn ? lastColumn.position + 1000 : 1000;
-        const newColumn = await prisma_1.default.column.create({
+        const newColumn = await prisma.column.create({
             data: {
                 title: title.trim(),
                 position: newPosition,
@@ -65,11 +58,10 @@ const createColumn = async (req, res) => {
         res.status(201).json(newColumn);
     }
     catch (error) {
-        (0, errorHandler_1.handleServerError)(res, error, 'Creating column');
+        handleServerError(res, error, 'Creating column');
     }
 };
-exports.createColumn = createColumn;
-const updateColumn = async (req, res) => {
+export const updateColumn = async (req, res) => {
     try {
         const userId = req.user?.userId;
         if (!userId)
@@ -108,7 +100,7 @@ const updateColumn = async (req, res) => {
                 .status(400)
                 .json({ message: 'Invalid input: "color" must be a string.' });
         }
-        const existingColumn = await prisma_1.default.column.findFirst({
+        const existingColumn = await prisma.column.findFirst({
             where: { id, userId },
         });
         if (!existingColumn) {
@@ -116,7 +108,7 @@ const updateColumn = async (req, res) => {
                 message: 'Column not found or you do not have permission to update it.',
             });
         }
-        const updatedColumn = await prisma_1.default.column.update({
+        const updatedColumn = await prisma.column.update({
             where: { id },
             data: {
                 ...(title !== undefined && { title: title.trim() }),
@@ -127,11 +119,10 @@ const updateColumn = async (req, res) => {
         res.json(updatedColumn);
     }
     catch (error) {
-        (0, errorHandler_1.handleServerError)(res, error, 'Updating column');
+        handleServerError(res, error, 'Updating column');
     }
 };
-exports.updateColumn = updateColumn;
-const deleteColumn = async (req, res) => {
+export const deleteColumn = async (req, res) => {
     try {
         const userId = req.user?.userId;
         if (!userId)
@@ -144,7 +135,7 @@ const deleteColumn = async (req, res) => {
                 message: 'Invalid request: Column ID is required and must be a string.',
             });
         }
-        const result = await prisma_1.default.column.deleteMany({
+        const result = await prisma.column.deleteMany({
             where: { id, userId },
         });
         if (result.count === 0) {
@@ -155,7 +146,6 @@ const deleteColumn = async (req, res) => {
         res.json({ message: 'Column deleted successfully' });
     }
     catch (error) {
-        (0, errorHandler_1.handleServerError)(res, error, 'Deleting column');
+        handleServerError(res, error, 'Deleting column');
     }
 };
-exports.deleteColumn = deleteColumn;

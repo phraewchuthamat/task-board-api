@@ -1,12 +1,6 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteTask = exports.updateTask = exports.createTask = exports.getTasks = void 0;
-const prisma_1 = __importDefault(require("../prisma"));
-const errorHandler_1 = require("../utils/errorHandler");
-const getTasks = async (req, res) => {
+import prisma from '../prisma.js';
+import { handleServerError } from '../utils/errorHandler.js';
+export const getTasks = async (req, res) => {
     try {
         const userId = req.user?.userId;
         const username = req.user?.username;
@@ -15,7 +9,7 @@ const getTasks = async (req, res) => {
                 .status(401)
                 .json({ message: 'Unauthorized: User ID is missing.' });
         }
-        const tasks = await prisma_1.default.task.findMany({
+        const tasks = await prisma.task.findMany({
             where: { userId },
             orderBy: { position: 'asc' },
         });
@@ -25,11 +19,10 @@ const getTasks = async (req, res) => {
         });
     }
     catch (error) {
-        (0, errorHandler_1.handleServerError)(res, error, 'Fetching tasks');
+        handleServerError(res, error, 'Fetching tasks');
     }
 };
-exports.getTasks = getTasks;
-const createTask = async (req, res) => {
+export const createTask = async (req, res) => {
     try {
         const userId = req.user?.userId;
         if (!userId) {
@@ -62,12 +55,12 @@ const createTask = async (req, res) => {
                 message: 'Invalid input: "priority" must be a string.',
             });
         }
-        const lastTask = await prisma_1.default.task.findFirst({
+        const lastTask = await prisma.task.findFirst({
             where: { userId, columnId },
             orderBy: { position: 'desc' },
         });
         const newPosition = lastTask ? lastTask.position + 1000 : 1000;
-        const newTask = await prisma_1.default.task.create({
+        const newTask = await prisma.task.create({
             data: {
                 title: title.trim(),
                 description: description || null,
@@ -80,11 +73,10 @@ const createTask = async (req, res) => {
         res.status(201).json(newTask);
     }
     catch (error) {
-        (0, errorHandler_1.handleServerError)(res, error, 'Creating task');
+        handleServerError(res, error, 'Creating task');
     }
 };
-exports.createTask = createTask;
-const updateTask = async (req, res) => {
+export const updateTask = async (req, res) => {
     try {
         const userId = req.user?.userId;
         if (!userId) {
@@ -129,7 +121,7 @@ const updateTask = async (req, res) => {
                 message: 'Invalid input: "priority" must be a string.',
             });
         }
-        const existingTask = await prisma_1.default.task.findFirst({
+        const existingTask = await prisma.task.findFirst({
             where: { id, userId },
         });
         if (!existingTask) {
@@ -137,7 +129,7 @@ const updateTask = async (req, res) => {
                 message: 'Task not found or you do not have permission to update it.',
             });
         }
-        const updatedTask = await prisma_1.default.task.update({
+        const updatedTask = await prisma.task.update({
             where: { id },
             data: {
                 ...(title !== undefined && { title: title.trim() }),
@@ -150,11 +142,10 @@ const updateTask = async (req, res) => {
         res.json(updatedTask);
     }
     catch (error) {
-        (0, errorHandler_1.handleServerError)(res, error, 'Updating task');
+        handleServerError(res, error, 'Updating task');
     }
 };
-exports.updateTask = updateTask;
-const deleteTask = async (req, res) => {
+export const deleteTask = async (req, res) => {
     try {
         const userId = req.user?.userId;
         if (!userId) {
@@ -168,7 +159,7 @@ const deleteTask = async (req, res) => {
                 .status(400)
                 .json({ message: 'Invalid request: Task ID is required.' });
         }
-        const result = await prisma_1.default.task.deleteMany({
+        const result = await prisma.task.deleteMany({
             where: {
                 id,
                 userId,
@@ -182,7 +173,6 @@ const deleteTask = async (req, res) => {
         res.json({ message: 'Task deleted successfully' });
     }
     catch (error) {
-        (0, errorHandler_1.handleServerError)(res, error, 'Deleting task');
+        handleServerError(res, error, 'Deleting task');
     }
 };
-exports.deleteTask = deleteTask;

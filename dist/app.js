@@ -1,27 +1,22 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const morgan_1 = __importDefault(require("morgan"));
-const dotenv_1 = __importDefault(require("dotenv"));
-const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
-const taskRoutes_1 = __importDefault(require("./routes/taskRoutes"));
-const columnRoutes_1 = __importDefault(require("./routes/columnRoutes"));
-dotenv_1.default.config();
-const app = (0, express_1.default)();
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+import columnRoutes from './routes/columnRoutes.js';
+dotenv.config();
+const app = express();
 const PORT = process.env.PORT || 3000;
-app.use(express_1.default.json());
-app.use(express_1.default.urlencoded({ extended: true }));
-app.use((0, morgan_1.default)('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(morgan('dev'));
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:8080'
+    'http://localhost:8080',
 ];
-app.use((0, cors_1.default)({
+app.use(cors({
     origin: (origin, callback) => {
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
@@ -32,21 +27,21 @@ app.use((0, cors_1.default)({
     },
     credentials: true,
 }));
-app.use('/auth', authRoutes_1.default);
-app.use('/tasks', taskRoutes_1.default);
-app.use('/columns', columnRoutes_1.default);
+app.use('/auth', authRoutes);
+app.use('/tasks', taskRoutes);
+app.use('/columns', columnRoutes);
 app.get('/', (req, res) => {
     res.status(200).json({
         status: 'success',
         message: 'Task Board API is running! 🚀',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
     });
 });
 app.use((req, res, next) => {
     res.status(404).json({
         status: 'error',
-        message: `Route not found: ${req.originalUrl}`
+        message: `Route not found: ${req.originalUrl}`,
     });
 });
 app.use((err, req, res, next) => {
@@ -54,7 +49,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({
         status: 'error',
         message: 'Internal Server Error',
-        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined,
     });
 });
 app.listen(PORT, () => {
@@ -65,4 +60,4 @@ app.listen(PORT, () => {
     console.log(`🔗 Local URL   : http://localhost:${PORT}`);
     console.log(`==================================================\n`);
 });
-exports.default = app;
+export default app;

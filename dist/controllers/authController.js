@@ -1,13 +1,7 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.forgotPassword = exports.login = exports.register = void 0;
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const prisma_1 = __importDefault(require("../prisma"));
-const register = async (req, res) => {
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import prisma from '../prisma.js';
+export const register = async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) {
@@ -15,14 +9,14 @@ const register = async (req, res) => {
                 .status(400)
                 .json({ message: 'Username and password are required' });
         }
-        const existingUser = await prisma_1.default.user.findUnique({
+        const existingUser = await prisma.user.findUnique({
             where: { username },
         });
         if (existingUser) {
             return res.status(400).json({ message: 'Username already exists' });
         }
-        const hashedPassword = await bcryptjs_1.default.hash(password, 10);
-        const newUser = await prisma_1.default.user.create({
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await prisma.user.create({
             data: {
                 username,
                 password: hashedPassword,
@@ -38,19 +32,18 @@ const register = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-exports.register = register;
-const login = async (req, res) => {
+export const login = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const user = await prisma_1.default.user.findUnique({ where: { username } });
+        const user = await prisma.user.findUnique({ where: { username } });
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
-        const isMatch = await bcryptjs_1.default.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
-        const token = jsonwebtoken_1.default.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign({ userId: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1d' });
         res.json({
             message: 'Login successful',
             accessToken: token,
@@ -62,21 +55,17 @@ const login = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-exports.login = login;
-const forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res) => {
     try {
         const { username } = req.body;
-        // 1. เช็คว่ามี Username นี้จริงไหม
-        const user = await prisma_1.default.user.findUnique({ where: { username } });
+        const user = await prisma.user.findUnique({ where: { username } });
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        // 2. สร้าง Token (อายุ 15 นาที)
-        const resetToken = jsonwebtoken_1.default.sign({ userId: user.id, type: 'reset' }, process.env.JWT_SECRET, { expiresIn: '15m' });
-        // 3. ส่ง Token กลับไปให้ Frontend ทันที (ไม่ต้องส่ง Link/Email)
+        const resetToken = jwt.sign({ userId: user.id, type: 'reset' }, process.env.JWT_SECRET, { expiresIn: '15m' });
         res.json({
             message: 'Token generated successfully',
-            token: resetToken, // <--- Frontend เอาตัวนี้ไปใช้ต่อ
+            token: resetToken,
             expiresIn: '15m',
         });
     }
@@ -85,8 +74,7 @@ const forgotPassword = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-exports.forgotPassword = forgotPassword;
-const resetPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
     try {
         const { token, newPassword, confirmPassword } = req.body;
         if (!token || !newPassword || !confirmPassword) {
@@ -99,7 +87,7 @@ const resetPassword = async (req, res) => {
         }
         let decoded;
         try {
-            decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+            decoded = jwt.verify(token, process.env.JWT_SECRET);
         }
         catch (err) {
             return res.status(401).json({ message: 'Invalid or expired token' });
@@ -107,8 +95,8 @@ const resetPassword = async (req, res) => {
         if (decoded.type !== 'reset') {
             return res.status(401).json({ message: 'Invalid token type' });
         }
-        const hashedPassword = await bcryptjs_1.default.hash(newPassword, 10);
-        await prisma_1.default.user.update({
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await prisma.user.update({
             where: { id: decoded.userId },
             data: {
                 password: hashedPassword,
@@ -121,4 +109,71 @@ const resetPassword = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 };
-exports.resetPassword = resetPassword;
+export const updateProfile = async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+        const { username } = req.body;
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (username) {
+            const existingUser = await prisma.user.findFirst({
+                where: {
+                    username: username,
+                    NOT: { id: userId },
+                },
+            });
+            if (existingUser) {
+                return res
+                    .status(400)
+                    .json({ message: 'Username already taken' });
+            }
+        }
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                username: username,
+            },
+            select: {
+                id: true,
+                username: true,
+                createdAt: true,
+            },
+        });
+        res.json({
+            message: 'Profile updated successfully',
+            user: updatedUser,
+        });
+    }
+    catch (error) {
+        console.error('Update Profile Error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};
+export const getProfile = async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                username: true,
+                createdAt: true,
+            },
+        });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json(user);
+    }
+    catch (error) {
+        console.error('Get Profile Error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+};

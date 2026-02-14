@@ -4,8 +4,8 @@ import {
     createTask,
     updateTask,
     deleteTask,
-} from '../controllers/taskController'
-import { authenticateToken } from '../middlewares/authMiddleware'
+} from '../controllers/taskController.js'
+import { authenticateToken } from '../middlewares/authMiddleware.js'
 
 const router = Router()
 

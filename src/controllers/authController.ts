@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import prisma from '../prisma'
+import prisma from '../prisma.js'
 
 interface AuthRequest extends Request {
     user?: {
@@ -150,7 +150,10 @@ export const resetPassword = async (
     }
 }
 
-export const updateProfile = async (req: AuthRequest, res: Response): Promise<any> => {
+export const updateProfile = async (
+    req: AuthRequest,
+    res: Response
+): Promise<any> => {
     try {
         const userId = req.user?.userId
         const { username } = req.body
@@ -167,11 +170,13 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<an
             const existingUser = await prisma.user.findFirst({
                 where: {
                     username: username,
-                    NOT: { id: userId }
+                    NOT: { id: userId },
                 },
             })
             if (existingUser) {
-                return res.status(400).json({ message: 'Username already taken' })
+                return res
+                    .status(400)
+                    .json({ message: 'Username already taken' })
             }
         }
 
@@ -183,13 +188,13 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<an
             select: {
                 id: true,
                 username: true,
-                createdAt: true
+                createdAt: true,
             },
         })
 
         res.json({
             message: 'Profile updated successfully',
-            user: updatedUser
+            user: updatedUser,
         })
     } catch (error) {
         console.error('Update Profile Error:', error)
@@ -197,8 +202,10 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<an
     }
 }
 
-
-export const getProfile = async (req: AuthRequest, res: Response): Promise<any> => {
+export const getProfile = async (
+    req: AuthRequest,
+    res: Response
+): Promise<any> => {
     try {
         const userId = req.user?.userId
 
@@ -211,8 +218,8 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<any> 
             select: {
                 id: true,
                 username: true,
-                createdAt: true
-            }
+                createdAt: true,
+            },
         })
 
         if (!user) {

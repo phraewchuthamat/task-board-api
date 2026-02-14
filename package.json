@@ -4,7 +4,7 @@
     "description": "",
     "main": "./src/app.ts",
     "scripts": {
-        "dev": "ts-node src/app.ts",
+        "dev": "node --no-warnings --loader ts-node/esm src/app.ts",
         "build": "tsc",
         "start": "node dist/app.js",
         "prisma:generate": "prisma generate",
@@ -19,7 +19,7 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "type": "commonjs",
+    "type": "module",
     "dependencies": {
         "@prisma/client": "6.19.2",
         "@types/node": "^25.2.0",
@@ -41,5 +41,8 @@
         "@types/jsonwebtoken": "^9.0.10",
         "@types/morgan": "^1.9.10",
         "prettier": "^3.8.1"
+    },
+    "engines": {
+        "node": ">=18.0.0"
     }
 }

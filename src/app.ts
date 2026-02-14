@@ -2,10 +2,9 @@ import express, { Application, Request, Response, NextFunction } from 'express'
 import cors from 'cors'
 import morgan from 'morgan'
 import dotenv from 'dotenv'
-
-import authRoutes from './routes/authRoutes'
-import taskRoutes from './routes/taskRoutes'
-import columnRoutes from './routes/columnRoutes'
+import authRoutes from './routes/authRoutes.js'
+import taskRoutes from './routes/taskRoutes.js'
+import columnRoutes from './routes/columnRoutes.js'
 
 dotenv.config()
 const app: Application = express()
@@ -18,7 +17,7 @@ app.use(morgan('dev'))
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:8080'
+    'http://localhost:8080',
 ]
 
 app.use(
@@ -34,7 +33,6 @@ app.use(
     })
 )
 
-
 app.use('/auth', authRoutes)
 app.use('/tasks', taskRoutes)
 app.use('/columns', columnRoutes)
@@ -44,14 +42,14 @@ app.get('/', (req: Request, res: Response) => {
         status: 'success',
         message: 'Task Board API is running! 🚀',
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
     })
 })
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(404).json({
         status: 'error',
-        message: `Route not found: ${req.originalUrl}`
+        message: `Route not found: ${req.originalUrl}`,
     })
 })
 
@@ -60,10 +58,9 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     res.status(500).json({
         status: 'error',
         message: 'Internal Server Error',
-        error: process.env.NODE_ENV === 'development' ? err.message : undefined
+        error: process.env.NODE_ENV === 'development' ? err.message : undefined,
     })
 })
-
 
 app.listen(PORT, () => {
     console.log(`\n==================================================`)
