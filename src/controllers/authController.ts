@@ -22,6 +22,12 @@ export const register = async (req: Request, res: Response): Promise<any> => {
                 .json({ message: 'Username and password are required' })
         }
 
+        if (password.length < 6) {
+            return res.status(400).json({
+                message: 'Password must be at least 6 characters long',
+            })
+        }
+
         const existingUser = await prisma.user.findUnique({
             where: { username },
         })
@@ -31,11 +37,25 @@ export const register = async (req: Request, res: Response): Promise<any> => {
 
         const hashedPassword = await bcrypt.hash(password, 10)
 
-        const newUser = await prisma.user.create({
-            data: {
-                username,
-                password: hashedPassword,
-            },
+        // Use a transaction to ensure both user and default columns are created
+        const newUser = await prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    username,
+                    password: hashedPassword,
+                },
+            })
+
+            // Create default columns for the new user
+            await tx.column.createMany({
+                data: [
+                    { title: 'To Do', position: 1, userId: user.id, color: 'text-blue-500' },
+                    { title: 'In Progress', position: 2, userId: user.id, color: 'text-yellow-500' },
+                    { title: 'Done', position: 3, userId: user.id, color: 'text-green-500' },
+                ],
+            })
+
+            return user
         })
 
         res.status(201).json({
@@ -66,6 +86,37 @@ export const login = async (req: Request, res: Response): Promise<any> => {
         if (!isMatch) {
             console.log(`[Auth] Login failed: Incorrect password for - ${username}`)
             return res.status(401).json({ message: 'Invalid credentials' })
+        }
+
+        // Migration logic: If the user has no columns, create default ones
+        const columnCount = await prisma.column.count({
+            where: { userId: user.id },
+        })
+
+        if (columnCount === 0) {
+            console.log(`[Auth] User ${username} has no columns. Creating defaults...`)
+            await prisma.column.createMany({
+                data: [
+                    {
+                        title: 'To Do',
+                        position: 1,
+                        userId: user.id,
+                        color: 'text-blue-500',
+                    },
+                    {
+                        title: 'In Progress',
+                        position: 2,
+                        userId: user.id,
+                        color: 'text-yellow-500',
+                    },
+                    {
+                        title: 'Done',
+                        position: 3,
+                        userId: user.id,
+                        color: 'text-green-500',
+                    },
+                ],
+            })
         }
 
         const token = jwt.sign(
