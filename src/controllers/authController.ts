@@ -9,11 +9,12 @@ interface AuthRequest extends Request {
     }
 }
 
-export const secret = process.env.JWT_SECRET || 'ubonmicrotech_private_key_2026'
+const secret = process.env.JWT_SECRET || 'ubonmicrotech_private_key_2026'
 
 export const register = async (req: Request, res: Response): Promise<any> => {
     try {
-        const { username, password } = req.body
+        let { username, password } = req.body
+        username = username?.trim().toLowerCase()
 
         if (!username || !password) {
             return res
@@ -45,22 +46,25 @@ export const register = async (req: Request, res: Response): Promise<any> => {
         console.error('Error creating user:', error)
         res.status(500).json({
             message: 'Internal server error',
-            error: error.message
+            error: error.message,
         })
     }
 }
 
 export const login = async (req: Request, res: Response): Promise<any> => {
     try {
-        const { username, password } = req.body
+        let { username, password } = req.body
+        username = username?.trim().toLowerCase()
 
         const user = await prisma.user.findUnique({ where: { username } })
         if (!user) {
+            console.log(`[Auth] Login failed: User not found - ${username}`)
             return res.status(401).json({ message: 'Invalid credentials' })
         }
 
         const isMatch = await bcrypt.compare(password, user.password)
         if (!isMatch) {
+            console.log(`[Auth] Login failed: Incorrect password for - ${username}`)
             return res.status(401).json({ message: 'Invalid credentials' })
         }
 
@@ -79,7 +83,7 @@ export const login = async (req: Request, res: Response): Promise<any> => {
         console.error(error)
         res.status(500).json({
             message: 'Internal server error',
-            error: error.message
+            error: error.message,
         })
     }
 }
@@ -111,7 +115,7 @@ export const forgotPassword = async (
         console.error('Forgot Password Error:', error)
         res.status(500).json({
             message: 'Internal server error',
-            error: error.message
+            error: error.message,
         })
     }
 }
@@ -159,7 +163,7 @@ export const resetPassword = async (
         console.error('Reset Password Error:', error)
         res.status(500).json({
             message: 'Internal server error',
-            error: error.message
+            error: error.message,
         })
     }
 }
