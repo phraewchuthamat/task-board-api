@@ -9,7 +9,7 @@ interface AuthRequest extends Request {
     }
 }
 
-const secret = process.env.JWT_SECRET || 'ubonmicrotech_private_key_2026'
+export const secret = process.env.JWT_SECRET || 'ubonmicrotech_private_key_2026'
 
 export const register = async (req: Request, res: Response): Promise<any> => {
     try {
