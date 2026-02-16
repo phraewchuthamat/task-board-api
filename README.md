@@ -2,16 +2,30 @@
 
 > **ระบบจัดการงานแบบ Kanban Board ที่ยืดหยุ่น ปลอดภัย และพร้อมใช้งานจริง**
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-Latest-green)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-5.x-lightgrey)](https://expressjs.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-6.19-blueviolet)](https://www.prisma.io/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)](https://www.postgresql.org/)
-[![Render](https://img.shields.io/badge/Render-Deployment-black)](https://render.com/)
+<p align="left">
+  <a href="https://www.typescriptlang.org/" target="_blank">
+    <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  </a>
+  <a href="https://nodejs.org/" target="_blank">
+    <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
+  </a>
+  <a href="https://expressjs.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
+  </a>
+  <a href="https://www.prisma.io/" target="_blank">
+    <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
+  </a>
+  <a href="https://www.postgresql.org/" target="_blank">
+    <img src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  </a>
+  <a href="https://render.com/" target="_blank">
+    <img src="https://img.shields.io/badge/Render-000000?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
+  </a>
+</p>
 
 ---
 
-##  ปัญหาที่พบ: ทำไมต้องสร้างระบบนี้?
+##  ปัญหาที่พบ
 
 ### ความท้าทายในการจัดการงาน
 
